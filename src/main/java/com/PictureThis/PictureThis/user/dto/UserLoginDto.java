@@ -1,5 +1,5 @@
 package com.PictureThis.PictureThis.user.dto;
 
-public class UserLoginDto {
+public record UserLoginDto(String userName, String password) {
 
 }
