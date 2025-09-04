@@ -1,5 +1,5 @@
 package com.PictureThis.PictureThis.user.dto;
 
-public class userDto {
+public record UserDto(String id, String userName) {
 
 }
