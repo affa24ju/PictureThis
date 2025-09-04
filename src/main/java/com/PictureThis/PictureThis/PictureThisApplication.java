@@ -12,6 +12,10 @@ public class PictureThisApplication {
 		Dotenv dotenv = Dotenv.configure().load();
 		System.setProperty("MONGO_USERNAME", dotenv.get("MONGO_USERNAME"));
 		System.setProperty("MONGO_PASSWORD", dotenv.get("MONGO_PASSWORD"));
+
+		// Debug: skriv ut miljövariabler
+		System.out.println("MONGO_USERNAME=" + dotenv.get("MONGO_USERNAME"));
+		System.out.println("MONGO_PASSWORD=" + dotenv.get("MONGO_PASSWORD"));
 		SpringApplication.run(PictureThisApplication.class, args);
 	}
 

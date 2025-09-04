@@ -1,6 +1,7 @@
 package com.PictureThis.PictureThis.user.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,8 +33,11 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<UserLoginDto> loginUser() {
-        return null;
+    public ResponseEntity<UserLoginDto> loginUser(@RequestBody UserLoginDto userLoginDto) {
+        String userName = userLoginDto.userName();
+        String password = userLoginDto.password();
+        return ResponseEntity.ok(
+                userService.login(userName, password));
     }
 
     @GetMapping()

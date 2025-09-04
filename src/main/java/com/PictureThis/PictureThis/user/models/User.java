@@ -19,7 +19,7 @@ public class User {
     private String id;
     @NotBlank
     @Indexed(unique = true)
-    private String username;
+    private String userName;
     @NotBlank
     private String password;
 }
