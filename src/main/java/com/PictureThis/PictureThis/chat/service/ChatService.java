@@ -31,7 +31,7 @@ public class ChatService {
         gameSession.addPlayer(player);
         broadcastGameState("Player " + player.userName() + " has joined.");
 
-        if (gameSession.getPlayers().size() == 1 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
+        if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
             startRound();
         }
     }
