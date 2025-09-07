@@ -27,8 +27,11 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
+
     public void playerJoined(UserDto player) {
-        gameSession.addPlayer(player);
+        if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
+            gameSession.getPlayers().add(player);
+        }
         broadcastGameState("Player " + player.userName() + " has joined.");
 
         if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
@@ -37,15 +40,42 @@ public class ChatService {
     }
 
     // TODO: PlayerLeft metod. om spelaren som lämnar är den som ritar, välj ny ritare och starta om rundan
+    public void playerLeft(UserDto player) {
+        // Remove player
+        gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
+        broadcastGameState("Player " + player.userName() + " has left.");
+        // If the player who left was the current drawer, pick a new drawer and start a new round
+        if (gameSession.getCurrentDrawer() != null && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
+            gameSession.setCurrentDrawer(null);
+            gameSession.setCurrentDrawerIndex(-1);
+            if (!gameSession.getPlayers().isEmpty()) {
+                startRound();
+            } else {
+                gameSession.setState(SessionState.WAITING_FOR_PLAYERS);
+            }
+        } else if (gameSession.getCurrentDrawerIndex() >= gameSession.getPlayers().size()) {
+            gameSession.setCurrentDrawerIndex(gameSession.getPlayers().size() - 1);
+        }
+    }
 
     private void startRound() {
         gameSession.setState(SessionState.DRAWING);
-        UserDto drawer = gameSession.getNextDrawer();
+        UserDto drawer = getNextDrawer();
         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
         gameSession.setCurrentWord(word);
 
         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word); // TODO skicka till alla istället, för convertAndSendToUser funkar inte tror jag
         broadcastGameState("New round started! " + drawer.userName() + " is drawing.");
+    }
+
+    private UserDto getNextDrawer() {
+        if (gameSession.getPlayers().isEmpty()) {
+            return null;
+        }
+        gameSession.setCurrentDrawerIndex((gameSession.getCurrentDrawerIndex() + 1) % gameSession.getPlayers().size());
+        UserDto drawer = gameSession.getPlayers().get(gameSession.getCurrentDrawerIndex());
+        gameSession.setCurrentDrawer(drawer);
+        return drawer;
     }
 
     public void handleGuess(ChatMessage message) {

@@ -22,18 +22,4 @@ public class ChatSession {
         this.wordList = List.of("apple", "banana", "car", "house", "tree", "dog", "cat", "sun", "moon", "star");
     }
 
-    public void addPlayer(UserDto player) {
-        if (players.stream().noneMatch(p -> p.userName().equals(player.userName()))) {
-            players.add(player);
-        }
-    }
-
-    public UserDto getNextDrawer() {
-        if (players.isEmpty()) {
-            return null;
-        }
-        currentDrawerIndex = (currentDrawerIndex + 1) % players.size();
-        currentDrawer = players.get(currentDrawerIndex);
-        return currentDrawer;
-    }
 }
