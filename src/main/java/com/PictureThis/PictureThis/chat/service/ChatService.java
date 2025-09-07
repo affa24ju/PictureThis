@@ -39,12 +39,10 @@ public class ChatService {
         }
     }
 
-    // TODO: PlayerLeft metod. om spelaren som lämnar är den som ritar, välj ny ritare och starta om rundan
     public void playerLeft(UserDto player) {
-        // Remove player
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
         broadcastGameState("Player " + player.userName() + " has left.");
-        // If the player who left was the current drawer, pick a new drawer and start a new round
+        // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en ny runda
         if (gameSession.getCurrentDrawer() != null && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
             gameSession.setCurrentDrawerIndex(-1);

@@ -1,29 +1,31 @@
 package com.PictureThis.PictureThis.chat.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-
 import com.PictureThis.PictureThis.user.dto.UserDto;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class WebSocketEventListener {
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
 
     @Autowired
     private ChatService chatService;
+
+    private final Map<String, String> sessionIdToUsername = new HashMap<>();
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String username = sha.getFirstNativeHeader("user");
-        if (username != null) {
-            logger.info("User connected: {}", username);
+        String sessionId = sha.getSessionId();
+        if (username != null && sessionId != null) {
+            sessionIdToUsername.put(sessionId, username);
+            System.out.println("User connected: " + username + " (sessionId: " + sessionId + ")");
             chatService.playerJoined(new UserDto(null, username));
         }
     }
@@ -31,10 +33,15 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        String username = sha.getFirstNativeHeader("user");
-        if (username != null) {
-            logger.info("User disconnected: {}", username);
-            chatService.playerLeft(new UserDto(null, username));
+        String sessionId = sha.getSessionId();
+        if (sessionId != null) {
+            String username = sessionIdToUsername.remove(sessionId);
+            if (username != null) {
+                System.out.println("User disconnected: " + username + " (sessionId: " + sessionId + ")");
+                chatService.playerLeft(new UserDto(null, username));
+            } else {
+                System.out.println("Unknown user disconnected (sessionId: " + sessionId + ")");
+            }
         }
     }
 }
