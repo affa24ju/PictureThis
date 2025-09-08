@@ -32,6 +32,12 @@ public class UserService {
             if ( existing != null) {
                 throw new org.springframework.dao.DuplicateKeyException("Användrannamnet är redan taget");
             }
+
+            //Hash lösenord innan insättning
+            String encrypted = passwordEncoder.encode(user.getPassword());
+            user.setPassword(encrypted);
+
+            return mongoOperations.inser(user);
         }
         // String encrtptedPassword = passwordEncoder.encode(user.getPassword());
         // // user.setPassword(encrtptedPassword);
