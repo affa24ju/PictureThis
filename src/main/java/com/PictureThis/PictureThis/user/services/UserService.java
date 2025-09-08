@@ -24,7 +24,14 @@ public class UserService {
     public User addNewUser(User user) {
         if (user == null || user.getUserName() == null || user.getUserName().isBlank()
         || user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new IllegalArgumentException("användarnamn och lösenord måste anges")
+            // detta exception kommer att översättas till en 400 bad request
+            throw new IllegalArgumentException("användarnamn och lösenord måste anges");
+
+            Query query = new Query(Critera.where("användarnamn").is(user.getUserName()));
+            User existing = mongoOperation.findOne(query,User.class);
+            if ( existing != null) {
+                throw new org.springframework.dao.DuplicateKeyException("Användrannamnet är redan taget");
+            }
         }
         // String encrtptedPassword = passwordEncoder.encode(user.getPassword());
         // // user.setPassword(encrtptedPassword);
