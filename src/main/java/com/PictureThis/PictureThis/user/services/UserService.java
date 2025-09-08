@@ -22,9 +22,13 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User addNewUser(User user) {
-        String encrtptedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encrtptedPassword);
-        return mongoOperations.insert(user);
+        if (user == null || user.getUserName() == null || user.getUserName().isBlank()
+        || user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("användarnamn och lösenord måste anges")
+        }
+        // String encrtptedPassword = passwordEncoder.encode(user.getPassword());
+        // // user.setPassword(encrtptedPassword);
+        // // return mongoOperations.insert(user);
 
     }
 
