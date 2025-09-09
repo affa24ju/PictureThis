@@ -25,11 +25,26 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    // @PostMapping("/register")
+    // // @ResponseStatus(HttpStatus.CREATED) // Returns 201 Created status
+    // public User registerUser(@RequestBody User user) {
+    //     return userService.addNewUser(user);
+    // }
     @PostMapping("/register")
-    // @ResponseStatus(HttpStatus.CREATED) // Returns 201 Created status
-    public User registerUser(@RequestBody User user) {
-        return userService.addNewUser(user);
+public ResponseEntity<?> registerUser(@RequestBody User user) {
+    // We return proper HTTP status codes instead of a raw entity
+    try {
+        userService.addNewUser(user);
+        // 201 Created with empty body (kan även retunera en  DTO vid behov)
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    } catch (IllegalArgumentException e) {
+        // Validation failure -> 400 Bad Request
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    } catch (org.springframework.dao.DuplicateKeyException e) {
+        // användarnamn alraedy exists -> 409 Conflict
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
     }
+}
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
