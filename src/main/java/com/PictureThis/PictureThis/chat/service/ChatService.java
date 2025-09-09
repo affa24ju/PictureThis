@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.model.ChatSession;
 import com.PictureThis.PictureThis.user.dto.UserDto;
+import com.PictureThis.PictureThis.chat.dto.GameSessionDto;
+import com.PictureThis.PictureThis.chat.dto.GameUpdateDto;
 
 @Service
 public class ChatService {
@@ -18,6 +20,7 @@ public class ChatService {
 
     public enum SessionState {
         WAITING_FOR_PLAYERS,
+        // CHOOSING_WORD,
         DRAWING,
         ROUND_END
     }
@@ -27,12 +30,12 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
-
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
             gameSession.getPlayers().add(player);
         }
-        broadcastGameState("Player " + player.userName() + " has joined.");
+        broadcastGameUpdate("PLAYER_JOINED", player.userName());
+        System.out.println("användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
 
         if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
             startRound();
@@ -41,7 +44,9 @@ public class ChatService {
 
     public void playerLeft(UserDto player) {
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
-        broadcastGameState("Player " + player.userName() + " has left.");
+        broadcastGameUpdate("PLAYER_LEFT", player.userName());
+        System.out.println(
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
         // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en ny runda
         if (gameSession.getCurrentDrawer() != null && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
@@ -61,9 +66,10 @@ public class ChatService {
         UserDto drawer = getNextDrawer();
         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
         gameSession.setCurrentWord(word);
+        System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
 
         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word); // TODO skicka till alla istället, för convertAndSendToUser funkar inte tror jag
-        broadcastGameState("New round started! " + drawer.userName() + " is drawing.");
+        broadcastGameUpdate("NEW_ROUND", drawer.userName());
     }
 
     private UserDto getNextDrawer() {
@@ -81,15 +87,25 @@ public class ChatService {
             return;
         }
 
-        if (message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
+        if (message.getMessageContent() != null
+                && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
-            broadcastGameState("Correct guess by " + message.getUserName() + "! The word was: " + gameSession.getCurrentWord());
+            broadcastGameUpdate("CORRECT_GUESS", message.getUserName());
             startRound();
-        } 
+        }
     }
 
-    private void broadcastGameState(String notification) {
-        ChatMessage message = new ChatMessage("System", notification);
-        messagingTemplate.convertAndSend("/topic/messages", message);
+    private void broadcastGameUpdate(String eventType, String eventContent) {
+        GameUpdateDto update = new GameUpdateDto(eventType, eventContent);
+        messagingTemplate.convertAndSend("/topic/game-updates", update);
+        messagingTemplate.convertAndSend("/topic/game-session", toGameSessionDto());
+    }
+
+    private GameSessionDto toGameSessionDto() {
+        return new GameSessionDto(
+                gameSession.getPlayers(),
+                gameSession.getCurrentWord(),
+                gameSession.getCurrentDrawer(),
+                gameSession.getState());
     }
 }
