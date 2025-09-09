@@ -1,5 +1,7 @@
 package com.PictureThis.PictureThis.user.controllers;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,7 +35,13 @@ public class UserControllerTest {
                 MockMvcRequestBuilders.post("/api/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                // Kollar om den returnerar samma userName
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("kalle"))
+                // Det ska inte returnera samma password, för att det ska vara crypterad
+                .andExpect(MockMvcResultMatchers.jsonPath("$.password").value(Matchers.not("kalle123")))
+                // Kollar om det finns id; id ska genereras automatiskt
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
 
     }
 
