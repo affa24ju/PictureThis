@@ -16,6 +16,8 @@ import com.PictureThis.PictureThis.user.dto.UserLoginDto;
 import com.PictureThis.PictureThis.user.models.User;
 import com.PictureThis.PictureThis.user.services.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -26,7 +28,7 @@ public class UserController {
     private ChatService chatService;
 
     @PostMapping("/register")
-    public User registerUser(@RequestBody User user) {
+    public User registerUser(@Valid @RequestBody User user) {
         return userService.addNewUser(user);
     }
 
@@ -35,7 +37,8 @@ public class UserController {
         String userName = userLoginDto.userName();
         String password = userLoginDto.password();
         UserLoginDto validatedUser = userService.login(userName, password);
-        chatService.playerJoined(new UserDto(validatedUser.id(), validatedUser.userName())); //TODO gör detta någon annanstans
+        chatService.playerJoined(new UserDto(validatedUser.id(), validatedUser.userName())); // TODO gör detta någon
+                                                                                             // annanstans
         return ResponseEntity.ok(validatedUser);
     }
 

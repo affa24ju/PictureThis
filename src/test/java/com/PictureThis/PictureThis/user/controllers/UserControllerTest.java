@@ -1,6 +1,5 @@
 package com.PictureThis.PictureThis.user.controllers;
 
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,21 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.password").value(Matchers.not("kalle123")))
                 // Kollar om det finns id; id ska genereras automatiskt
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
+
+    }
+
+    // Förväntar badRequest om userName är tomt, @NotBlank fungerar då
+    @Test
+    public void testRegisterUser_InvalidUserName() throws Exception {
+        var user = new User();
+        user.setUserName("");
+        user.setPassword("kalle123");
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
     }
 
