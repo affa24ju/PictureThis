@@ -34,7 +34,7 @@ public class UserService {
         User user = mongoOperations.findOne(query, User.class);
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return new UserLoginDto(user.getUserName(), user.getPassword());
+            return new UserLoginDto(user.getId(), user.getUserName(), null);
         }
         return null;
 
