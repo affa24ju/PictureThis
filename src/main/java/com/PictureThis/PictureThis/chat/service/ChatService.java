@@ -27,6 +27,9 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
+    public ChatSession getGameSession() {
+        return gameSession;
+    }
 
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
@@ -42,8 +45,10 @@ public class ChatService {
     public void playerLeft(UserDto player) {
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
         broadcastGameState("Player " + player.userName() + " has left.");
-        // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en ny runda
-        if (gameSession.getCurrentDrawer() != null && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
+        // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en
+        // ny runda
+        if (gameSession.getCurrentDrawer() != null
+                && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
             gameSession.setCurrentDrawerIndex(-1);
             if (!gameSession.getPlayers().isEmpty()) {
@@ -56,13 +61,16 @@ public class ChatService {
         }
     }
 
-    private void startRound() {
+    public void startRound() {
         gameSession.setState(SessionState.DRAWING);
         UserDto drawer = getNextDrawer();
         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
         gameSession.setCurrentWord(word);
 
-        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word); // TODO skicka till alla istället, för convertAndSendToUser funkar inte tror jag
+        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word); // TODO skicka till alla
+                                                                                              // istället, för
+                                                                                              // convertAndSendToUser
+                                                                                              // funkar inte tror jag
         broadcastGameState("New round started! " + drawer.userName() + " is drawing.");
     }
 
@@ -83,12 +91,13 @@ public class ChatService {
 
         if (message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
-            broadcastGameState("Correct guess by " + message.getUserName() + "! The word was: " + gameSession.getCurrentWord());
+            broadcastGameState(
+                    "Correct guess by " + message.getUserName() + "! The word was: " + gameSession.getCurrentWord());
             startRound();
-        } 
+        }
     }
 
-    private void broadcastGameState(String notification) {
+    public void broadcastGameState(String notification) {
         ChatMessage message = new ChatMessage("System", notification);
         messagingTemplate.convertAndSend("/topic/messages", message);
     }
