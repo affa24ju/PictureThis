@@ -58,9 +58,13 @@ public class ChatServiceTest {
         // Arrange
         chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
         chatService.getGameSession().setCurrentWord("banana");
+        chatService.getGameSession().getPlayers().add(new UserDto("1", "kalle"));
 
         // Passerar fel ord
         ChatMessage guess = new ChatMessage("kalle", "apple");
+
+        // Mockar bort startRound
+        doNothing().when(chatService).startRound();
 
         // Act
         chatService.handleGuess(guess);
