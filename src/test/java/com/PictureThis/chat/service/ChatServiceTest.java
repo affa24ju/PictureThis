@@ -39,8 +39,8 @@ public class ChatServiceTest {
         // Assert
         assert chatService.getGameSession().getState() == ChatService.SessionState.DRAWING;
 
-        verify(chatService, never()).broadcastGameState(anyString());
-        verify(chatService, never()).startRound();
+        verify(chatService).broadcastGameState(contains("Correct guess by kalle!"));
+        verify(chatService).startRound();
 
     }
 
