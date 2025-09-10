@@ -1,29 +1,31 @@
 package com.PictureThis.PictureThis.chat.dto;
 
+import java.util.Map;
+
 public class GameUpdateDto {
-    private String eventType;
-    private String eventContent;
+    private String event;
+    private Map<String, Object> content;
 
     public GameUpdateDto() {}
 
-    public GameUpdateDto(String eventType, String eventContent) {
-        this.eventType = eventType;
-        this.eventContent = eventContent;
+    public GameUpdateDto(String event, Map<String, Object> content) {
+        this.event = event;
+        this.content = content;
     }
 
-    public String getEventType() {
-        return eventType;
+    public String getEvent() {
+        return event;
     }
 
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
+    public void setEvent(String event) {
+        this.event = event;
     }
 
-    public String getEventContent() {
-        return eventContent;
+    public Map<String, Object> getContent() {
+        return content;
     }
 
-    public void setEventContent(String eventContent) {
-        this.eventContent = eventContent;
+    public void setContent(Map<String, Object> content) {
+        this.content = content;
     }
 }
