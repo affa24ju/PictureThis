@@ -16,6 +16,8 @@ import com.PictureThis.PictureThis.user.dto.UserLoginDto;
 import com.PictureThis.PictureThis.user.models.User;
 import com.PictureThis.PictureThis.user.services.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
@@ -25,7 +27,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public User registerUser(@RequestBody User user) {
+    public User registerUser(@Valid @RequestBody User user) {
         return userService.addNewUser(user);
     }
 
