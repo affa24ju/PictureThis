@@ -32,6 +32,12 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
+
+    public ChatSession getGameSession() {
+        return gameSession;
+    }
+
+
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
             gameSession.getPlayers().add(player);
@@ -49,11 +55,13 @@ public class ChatService {
 
     public void playerLeft(UserDto player) {
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
+
         Map<String, Object> content = new HashMap<>();
         content.put("userName", player.userName());
         broadcastGameUpdate("PLAYER_LEFT", content);
         System.out.println(
                 "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
+
         // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en
         // ny runda
         if (gameSession.getCurrentDrawer() != null
@@ -70,17 +78,19 @@ public class ChatService {
         }
     }
 
-    private void startRound() {
+    public void startRound() {
         gameSession.setState(SessionState.DRAWING);
         UserDto drawer = getNextDrawer();
         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
         gameSession.setCurrentWord(word);
         System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
 
+
         Map<String, Object> content = new HashMap<>();
         content.put("userName", drawer.userName());
         broadcastGameUpdate("NEW_ROUND", content);
         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
+
     }
 
     private UserDto getNextDrawer() {
@@ -101,18 +111,22 @@ public class ChatService {
         if (message.getMessageContent() != null
                 && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
+
             Map<String, Object> content = new HashMap<>();
             content.put("userName", message.getUserName());
             content.put("word", gameSession.getCurrentWord());
             broadcastGameUpdate("CORRECT_GUESS", content);
+
             startRound();
         }
     }
+
 
     private void broadcastGameUpdate(String event, Map<String, Object> content) {
         GameUpdateDto update = new GameUpdateDto(event, content);
         messagingTemplate.convertAndSend("/topic/game-updates", update);
         // messagingTemplate.convertAndSend("/topic/game-session", toGameSessionDto());
+
     }
 
     // TODO när ny spelare går med, skicka hela gameSession
