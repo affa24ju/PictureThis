@@ -21,7 +21,8 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        String username = sha.getFirstNativeHeader("user");
+
+        String username = sha.getUser().getName();
         String sessionId = sha.getSessionId();
         if (username != null && sessionId != null) {
             sessionIdToUsername.put(sessionId, username);

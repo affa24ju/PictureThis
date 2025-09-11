@@ -1,6 +1,8 @@
 package com.PictureThis.PictureThis.chat.service;
 
 import java.util.Random;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.model.ChatSession;
 import com.PictureThis.PictureThis.user.dto.UserDto;
+// import com.PictureThis.PictureThis.chat.dto.GameSessionDto;
+import com.PictureThis.PictureThis.chat.dto.GameUpdateDto;
 
 @Service
 public class ChatService {
@@ -18,6 +22,7 @@ public class ChatService {
 
     public enum SessionState {
         WAITING_FOR_PLAYERS,
+        // CHOOSING_WORD,
         DRAWING,
         ROUND_END
     }
@@ -27,12 +32,15 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
-
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
             gameSession.getPlayers().add(player);
         }
-        broadcastGameState("Player " + player.userName() + " has joined.");
+        Map<String, Object> content = new HashMap<>();
+        content.put("userName", player.userName());
+        broadcastGameUpdate("PLAYER_JOINED", content);
+        System.out.println(
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
 
         if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
             startRound();
@@ -41,9 +49,15 @@ public class ChatService {
 
     public void playerLeft(UserDto player) {
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
-        broadcastGameState("Player " + player.userName() + " has left.");
-        // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en ny runda
-        if (gameSession.getCurrentDrawer() != null && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
+        Map<String, Object> content = new HashMap<>();
+        content.put("userName", player.userName());
+        broadcastGameUpdate("PLAYER_LEFT", content);
+        System.out.println(
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
+        // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en
+        // ny runda
+        if (gameSession.getCurrentDrawer() != null
+                && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
             gameSession.setCurrentDrawerIndex(-1);
             if (!gameSession.getPlayers().isEmpty()) {
@@ -61,9 +75,12 @@ public class ChatService {
         UserDto drawer = getNextDrawer();
         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
         gameSession.setCurrentWord(word);
+        System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
 
-        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word); // TODO skicka till alla istället, för convertAndSendToUser funkar inte tror jag
-        broadcastGameState("New round started! " + drawer.userName() + " is drawing.");
+        Map<String, Object> content = new HashMap<>();
+        content.put("userName", drawer.userName());
+        broadcastGameUpdate("NEW_ROUND", content);
+        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
     }
 
     private UserDto getNextDrawer() {
@@ -81,15 +98,29 @@ public class ChatService {
             return;
         }
 
-        if (message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
+        if (message.getMessageContent() != null
+                && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
-            broadcastGameState("Correct guess by " + message.getUserName() + "! The word was: " + gameSession.getCurrentWord());
+            Map<String, Object> content = new HashMap<>();
+            content.put("userName", message.getUserName());
+            content.put("word", gameSession.getCurrentWord());
+            broadcastGameUpdate("CORRECT_GUESS", content);
             startRound();
-        } 
+        }
     }
 
-    private void broadcastGameState(String notification) {
-        ChatMessage message = new ChatMessage("System", notification);
-        messagingTemplate.convertAndSend("/topic/messages", message);
+    private void broadcastGameUpdate(String event, Map<String, Object> content) {
+        GameUpdateDto update = new GameUpdateDto(event, content);
+        messagingTemplate.convertAndSend("/topic/game-updates", update);
+        // messagingTemplate.convertAndSend("/topic/game-session", toGameSessionDto());
     }
+
+    // TODO när ny spelare går med, skicka hela gameSession
+    // private GameSessionDto toGameSessionDto() {
+    //     return new GameSessionDto(
+    //             gameSession.getPlayers(),
+    //             gameSession.getCurrentWord(),
+    //             gameSession.getCurrentDrawer(),
+    //             gameSession.getState());
+    // }
 }
