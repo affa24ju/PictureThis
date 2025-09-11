@@ -89,4 +89,12 @@ public class UserControllerTest {
 
         }
 
+        // Test: login med invalid user credential
+        @Test
+        public void testLoginUser_InvalidCredentials() throws Exception {
+                // Arrange: registrera en user först
+
+                // Act:
+        }
+
 }
