@@ -94,7 +94,14 @@ public class UserControllerTest {
         public void testLoginUser_InvalidCredentials() throws Exception {
                 // Arrange: registrera en user först
 
-                // Act:
+                // Act: Logga in med fel userName/ password
+
+                // Assert:
+
+                // Hmmm...kanske får nullPointer exception, samma som igår kväll!!
+                // För att vid fel credential returnerar userService.login null
+                // Kanske bättre att kolla, validateuser == null & returnera 401 Unauthorized
+
         }
 
 }
