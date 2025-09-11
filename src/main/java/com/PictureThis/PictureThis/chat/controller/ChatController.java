@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.service.ChatService;
@@ -16,6 +17,7 @@ public class ChatController {
 
     @MessageMapping("/chat")
     @SendTo("/topic/messages")
+    @CrossOrigin(origins = "*")
     public ChatMessage sendMessage(ChatMessage message) {
         chatService.handleGuess(message);
         return message;
