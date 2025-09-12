@@ -108,8 +108,7 @@ public class ChatService {
             return;
         }
 
-        if (message.getMessageContent() != null
-                && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
+        if (!message.getUserName().equals(gameSession.getCurrentDrawer().userName()) && message.getMessageContent() != null && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
 
             Map<String, Object> content = new HashMap<>();
