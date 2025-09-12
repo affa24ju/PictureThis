@@ -1,6 +1,7 @@
 package com.PictureThis.PictureThis.user.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.PictureThis.PictureThis.JWTsecurity.JWTUtil;
 import com.PictureThis.PictureThis.user.dto.UserDto;
 import com.PictureThis.PictureThis.user.dto.UserLoginDto;
 import com.PictureThis.PictureThis.user.models.User;
@@ -25,6 +27,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private JWTUtil JWTUtil;
 
     @PostMapping("/register")
     public User registerUser(@Valid @RequestBody User user) {
@@ -32,11 +36,21 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginDto> loginUser(@RequestBody UserLoginDto userLoginDto) {
+    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody UserLoginDto userLoginDto) {
         String userName = userLoginDto.userName();
         String password = userLoginDto.password();
         UserLoginDto validatedUser = userService.login(userName, password);
-        return ResponseEntity.ok(validatedUser);
+
+        if (validatedUser != null) {
+            String token = JWTUtil.generateToken(userName);
+            return ResponseEntity.ok(Map.of(
+                    "user", validatedUser,
+                    "token", token));
+
+        } else {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        }
+
     }
 
     @GetMapping()
