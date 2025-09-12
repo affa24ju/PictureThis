@@ -14,8 +14,6 @@ import com.PictureThis.PictureThis.user.dto.UserLoginDto;
 import com.PictureThis.PictureThis.user.models.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.var;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UserControllerTest {
