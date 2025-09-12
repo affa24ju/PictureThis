@@ -76,7 +76,6 @@ public class ChatService {
         if (gameSession.getCurrentDrawer() != null
                 && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
-            gameSession.setCurrentDrawerIndex(-1);
             startRound();
         } else if (gameSession.getCurrentDrawerIndex() >= gameSession.getPlayers().size()) {
             gameSession.setCurrentDrawerIndex(gameSession.getPlayers().size() - 1);
