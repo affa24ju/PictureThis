@@ -1,6 +1,7 @@
 package com.PictureThis.chat.service;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 // import static org.mockito.Mockito.never;
 // import static org.mockito.Mockito.verify;
@@ -12,6 +13,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.service.ChatService;
+import com.PictureThis.PictureThis.chat.dto.GameUpdateDto;
 import com.PictureThis.PictureThis.user.dto.UserDto;
 
 public class ChatServiceTest {
@@ -47,7 +49,7 @@ public class ChatServiceTest {
         // Assert
         assert chatService.getGameSession().getState() == ChatService.SessionState.ROUND_END;
 
-        verify(chatService).broadcastGameState(contains("Correct guess by kalle!"));
+        verify(messagingTemplate).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
         verify(chatService).startRound();
 
     }
@@ -72,7 +74,7 @@ public class ChatServiceTest {
         // Assert
         assert chatService.getGameSession().getState() == ChatService.SessionState.DRAWING;
 
-        verify(chatService, never()).broadcastGameState(anyString());
+        verify(messagingTemplate, never()).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
         verify(chatService, never()).startRound();
 
     }
