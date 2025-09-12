@@ -46,7 +46,7 @@ public class ChatService {
         content.put("userName", player.userName());
         broadcastGameUpdate("PLAYER_JOINED", content);
         System.out.println(
-                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList() + ", state: " + gameSession.getState());
 
         if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
             startRound();
@@ -60,7 +60,16 @@ public class ChatService {
         content.put("userName", player.userName());
         broadcastGameUpdate("PLAYER_LEFT", content);
         System.out.println(
-                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList());
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList() + ", state: " + gameSession.getState());
+
+        // Om färre än 2 spelare, sätt state till WAITING_FOR_PLAYERS
+        if (gameSession.getPlayers().size() < 2) {
+            gameSession.setState(SessionState.WAITING_FOR_PLAYERS);
+            gameSession.setCurrentDrawer(null);
+            gameSession.setCurrentDrawerIndex(-1);
+            gameSession.setCurrentWord(null);
+            return;
+        }
 
         // Om spelaren som lämnade var den som ritade, välj en ny ritare och starta en
         // ny runda
@@ -68,11 +77,7 @@ public class ChatService {
                 && gameSession.getCurrentDrawer().userName().equals(player.userName())) {
             gameSession.setCurrentDrawer(null);
             gameSession.setCurrentDrawerIndex(-1);
-            if (!gameSession.getPlayers().isEmpty()) {
-                startRound();
-            } else {
-                gameSession.setState(SessionState.WAITING_FOR_PLAYERS);
-            }
+            startRound();
         } else if (gameSession.getCurrentDrawerIndex() >= gameSession.getPlayers().size()) {
             gameSession.setCurrentDrawerIndex(gameSession.getPlayers().size() - 1);
         }
