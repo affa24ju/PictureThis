@@ -34,8 +34,10 @@ public class UserService {
         User user = mongoOperations.findOne(query, User.class);
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            System.out.println("Login succeded for user: " + userName);
             return new UserLoginDto(user.getId(), user.getUserName(), null);
         }
+        System.out.println("Login failed for user: " + userName);
         return null;
 
     }
