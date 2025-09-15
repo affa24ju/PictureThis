@@ -16,9 +16,10 @@ git clone git@github.com:affa24ju/PictureThis.git
 ```
 Create a .env file in the root directory and add your credentials:
 ```env
-
-MONGO_USERNAME=example
-MONGO_PASSWORD=example
+(for example)
+MONGO_USERNAME=your userName
+MONGO_PASSWORD=your password
+jwt.secret=DCeHHXxrCgcPf0slcSdLL7oivWYuCbqJ02nbnYFv8nM=
 ```
 
 Start the project with  
