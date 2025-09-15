@@ -65,16 +65,26 @@ public class ChatServiceTest {
 
     }
 
-    // Vid rätt state & fel gissning: ska inte hända något
+    // Vid fel gissning: ska inte hända något, alltså:
+    // - state ska fortfarande vara DRAWING
+    // - inget meddelande ska skickas
+    // - startRound() ska inte anropas
     @Test
-    void handleGuess_WrongState_ShouldDoNothing() {
+    void handleGuess_WrongGuess_ShouldDoNothing() {
         // Arrange
         chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
         chatService.getGameSession().setCurrentWord("banana");
-        chatService.getGameSession().getPlayers().add(new UserDto("1", "kalle"));
 
-        // Passerar fel ord
-        ChatMessage guess = new ChatMessage("kalle", "apple");
+        // Lägger till två spelare & sätter "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+        var guesser = new UserDto("2", "stina");
+
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().getPlayers().add(guesser);
+        chatService.getGameSession().setCurrentDrawer(drawer);
+
+        // Passerar fel ord som gissning
+        ChatMessage guess = new ChatMessage("stina", "apple");
 
         // Mockar bort startRound
         doNothing().when(chatService).startRound();
