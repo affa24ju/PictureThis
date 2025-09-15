@@ -32,11 +32,9 @@ public class ChatService {
         this.gameSession = new ChatSession();
     }
 
-
     public ChatSession getGameSession() {
         return gameSession;
     }
-
 
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
@@ -46,7 +44,8 @@ public class ChatService {
         content.put("userName", player.userName());
         broadcastGameUpdate("PLAYER_JOINED", content);
         System.out.println(
-                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList() + ", state: " + gameSession.getState());
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList()
+                        + ", state: " + gameSession.getState());
 
         if (gameSession.getPlayers().size() == 2 && gameSession.getState() == SessionState.WAITING_FOR_PLAYERS) {
             startRound();
@@ -60,7 +59,8 @@ public class ChatService {
         content.put("userName", player.userName());
         broadcastGameUpdate("PLAYER_LEFT", content);
         System.out.println(
-                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList() + ", state: " + gameSession.getState());
+                "användare i chatsessionen: " + gameSession.getPlayers().stream().map(UserDto::userName).toList()
+                        + ", state: " + gameSession.getState());
 
         // Om färre än 2 spelare, sätt state till WAITING_FOR_PLAYERS
         if (gameSession.getPlayers().size() < 2) {
@@ -89,7 +89,6 @@ public class ChatService {
         gameSession.setCurrentWord(word);
         System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
 
-
         Map<String, Object> content = new HashMap<>();
         content.put("userName", drawer.userName());
         broadcastGameUpdate("NEW_ROUND", content);
@@ -112,7 +111,9 @@ public class ChatService {
             return;
         }
 
-        if (!message.getUserName().equals(gameSession.getCurrentDrawer().userName()) && message.getMessageContent() != null && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
+        if (!message.getUserName().equals(gameSession.getCurrentDrawer().userName())
+                && message.getMessageContent() != null
+                && message.getMessageContent().equalsIgnoreCase(gameSession.getCurrentWord())) {
             gameSession.setState(SessionState.ROUND_END);
 
             Map<String, Object> content = new HashMap<>();
@@ -120,10 +121,15 @@ public class ChatService {
             content.put("word", gameSession.getCurrentWord());
             broadcastGameUpdate("CORRECT_GUESS", content);
 
+            // Fördröjning innan ny runda startar
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+
             startRound();
         }
     }
-
 
     private void broadcastGameUpdate(String event, Map<String, Object> content) {
         GameUpdateDto update = new GameUpdateDto(event, content);
@@ -134,10 +140,10 @@ public class ChatService {
 
     // TODO när ny spelare går med, skicka hela gameSession
     // private GameSessionDto toGameSessionDto() {
-    //     return new GameSessionDto(
-    //             gameSession.getPlayers(),
-    //             gameSession.getCurrentWord(),
-    //             gameSession.getCurrentDrawer(),
-    //             gameSession.getState());
+    // return new GameSessionDto(
+    // gameSession.getPlayers(),
+    // gameSession.getCurrentWord(),
+    // gameSession.getCurrentDrawer(),
+    // gameSession.getState());
     // }
 }
