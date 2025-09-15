@@ -31,7 +31,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      MONGODB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/picturethis?authSource=admin
+      MONGO_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/picturethis?authSource=admin
       MONGODB_DATABASE: picturethis
       JWT_SECRET: WTkM+X9O4Vn7kDjZgEy3kJxJHTe+qJ7VcPqHF9p+DcY=
     depends_on:
