@@ -94,14 +94,26 @@ public class UserControllerTest {
         @Test
         public void testLoginUser_InvalidCredentials() throws Exception {
                 // Arrange: registrera en user först
+                var user = new User();
+                user.setUserName("stina");
+                user.setPassword("stina123");
+
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post("/api/users/register")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(user)))
+                                .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Act: Logga in med fel userName/ password
+                var wrongLoginDto = new UserLoginDto(null, "stina", "fel123");
 
-                // Assert:
-
-                // Hmmm...kanske får nullPointer exception, samma som igår kväll!!
-                // För att vid fel credential returnerar userService.login null
-                // Kanske bättre att kolla, validateuser == null & returnera 401 Unauthorized
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post("/api/users/login")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(wrongLoginDto)))
+                                // Assert: ska returnera 401 unauthorized
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid credentials"));
 
         }
 
