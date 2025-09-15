@@ -24,32 +24,43 @@ public class ChatServiceTest {
     void setUp() {
         messagingTemplate = mock(SimpMessagingTemplate.class);
 
-        // Skapar en spy, så vi kan verifera privata anrop
+        // Skapar en spy, så vi kan verifera privata anrop t.ex. startRound()
         chatService = Mockito.spy(new ChatService(messagingTemplate));
     }
 
-    // Vid rätt state & rätt gissning: ändrar state till ROUND_END
-    // anropar broadcastGameState och startRound
+    // Vid rätt gissning:
+    // - ändrar state till ROUND_END
+    // - broadcastGameUpdate("CORRECT_GUESS", ...) ska skickas
+    // - startRound() ska anropas
     @Test
     void handleGuess_CorrectGuess_ShouldChangeStateAndBroadcast() {
         // Arrange
         chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
         chatService.getGameSession().setCurrentWord("apple");
 
-        // Lägger till en spelare, annars får null point exception
-        chatService.getGameSession().getPlayers().add(new UserDto("1", "kalle"));
+        // Lägger till två spelare & sätter "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+        var guesser = new UserDto("2", "stina");
 
-        ChatMessage guess = new ChatMessage("kalle", "apple");
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().getPlayers().add(guesser);
+        chatService.getGameSession().setCurrentDrawer(drawer);
 
-        // Mockar bort startRound, annars sätter den tillbaka state till Drawing
+        // Gissaren skriver rätt ord
+        ChatMessage guess = new ChatMessage("stina", "apple");
+
+        // Mockar bort startRound, för att inte ändra tillbaka state till Drawing
         doNothing().when(chatService).startRound();
+
         // Act
         chatService.handleGuess(guess);
 
         // Assert
         assert chatService.getGameSession().getState() == ChatService.SessionState.ROUND_END;
 
+        // Kollar att broadcastGameUpdate körs
         verify(messagingTemplate).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
+        // Kollar att startRound() anropas
         verify(chatService).startRound();
 
     }
