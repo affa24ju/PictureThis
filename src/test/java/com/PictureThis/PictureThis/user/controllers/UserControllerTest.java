@@ -81,9 +81,12 @@ public class UserControllerTest {
                                                 .content(objectMapper.writeValueAsString(loginDto)))
                                 // Assert
                                 .andExpect(MockMvcResultMatchers.status().isOk())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("nisse"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.password").doesNotExist())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
+                                // Kollar att user-objektet returneras korrekt
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.userName").value("nisse"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.password").doesNotExist())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.id").exists())
+                                // Kollar om token finns
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.token").exists());
 
         }
 
