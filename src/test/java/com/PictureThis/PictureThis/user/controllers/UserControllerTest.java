@@ -104,7 +104,7 @@ public class UserControllerTest {
                                                 .content(objectMapper.writeValueAsString(user)))
                                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-                // Act: Logga in med fel userName/ password
+                // Act: Logga in med fel userName/ password; här med fel lösenord
                 var wrongLoginDto = new UserLoginDto(null, "stina", "fel123");
 
                 mockMvc.perform(
