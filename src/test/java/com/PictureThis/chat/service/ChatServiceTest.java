@@ -99,4 +99,34 @@ public class ChatServiceTest {
         verify(chatService, never()).startRound();
 
     }
+
+    // Testar även om ritaren själv (ritaren skall inte gissa) försöker gissa:
+    // - ska ignoreras, inget broadcast & state ska inte ändras
+    @Test
+    void handleGuess_DrawerGuessing_ShouldBeIgnored() {
+        // Arrange
+        chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
+        chatService.getGameSession().setCurrentWord("apple");
+
+        // Lägger "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().setCurrentDrawer(drawer);
+
+        // "kalle" själv gissar sitt eget ord
+        ChatMessage guess = new ChatMessage("kalle", "apple");
+
+        doNothing().when(chatService).startRound();
+
+        // Act
+        chatService.handleGuess(guess);
+
+        // Assert
+        assert chatService.getGameSession().getState() == ChatService.SessionState.DRAWING;
+
+        verify(messagingTemplate, never()).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
+        verify(chatService, never()).startRound();
+
+    }
 }
