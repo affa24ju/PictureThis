@@ -25,8 +25,9 @@ public class UserControllerTest {
 
         @Test
         public void testRegisterUser_ValidUser() throws Exception {
+                String uniqueUserName = "kalle_" + System.currentTimeMillis();
                 var user = new User();
-                user.setUserName("kalle");
+                user.setUserName(uniqueUserName);
                 user.setPassword("kalle123");
 
                 mockMvc.perform(
@@ -35,7 +36,7 @@ public class UserControllerTest {
                                                 .content(objectMapper.writeValueAsString(user)))
                                 .andExpect(MockMvcResultMatchers.status().isOk())
                                 // Kollar om den returnerar samma userName
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("kalle"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value(uniqueUserName))
                                 // Det ska inte returnera samma password, för att det ska vara crypterad
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.password").value(Matchers.not("kalle123")))
                                 // Kollar om det finns id; id ska genereras automatiskt
@@ -61,9 +62,11 @@ public class UserControllerTest {
         // Test login med rätt credential
         @Test
         public void testLoginUser_ValidCredentials() throws Exception {
+                String uniqueUserName = "nisse_" + System.currentTimeMillis();
+
                 // Arrange, registrera en user först
                 var user = new User();
-                user.setUserName("nisse");
+                user.setUserName(uniqueUserName);
                 user.setPassword("nisse123");
 
                 mockMvc.perform(
@@ -73,7 +76,7 @@ public class UserControllerTest {
                                 .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Act: Logga in med samma credential
-                var loginDto = new UserLoginDto(null, "nisse", "nisse123");
+                var loginDto = new UserLoginDto(null, uniqueUserName, "nisse123");
 
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post("/api/users/login")
@@ -82,7 +85,7 @@ public class UserControllerTest {
                                 // Assert
                                 .andExpect(MockMvcResultMatchers.status().isOk())
                                 // Kollar att user-objektet returneras korrekt
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.userName").value("nisse"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.userName").value(uniqueUserName))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.user.password").doesNotExist())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.user.id").exists())
                                 // Kollar om token finns
@@ -93,9 +96,11 @@ public class UserControllerTest {
         // Test: login med invalid user credential
         @Test
         public void testLoginUser_InvalidCredentials() throws Exception {
+                String uniqueUserName = "stina_" + System.currentTimeMillis();
+
                 // Arrange: registrera en user först
                 var user = new User();
-                user.setUserName("stina");
+                user.setUserName(uniqueUserName);
                 user.setPassword("stina123");
 
                 mockMvc.perform(
@@ -105,7 +110,7 @@ public class UserControllerTest {
                                 .andExpect(MockMvcResultMatchers.status().isOk());
 
                 // Act: Logga in med fel userName/ password; här med fel lösenord
-                var wrongLoginDto = new UserLoginDto(null, "stina", "fel123");
+                var wrongLoginDto = new UserLoginDto(null, uniqueUserName, "fel123");
 
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post("/api/users/login")
