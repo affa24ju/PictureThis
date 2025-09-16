@@ -86,7 +86,7 @@ public class ChatService {
     }
 
     public void startRound() {
-        gameSession.setState(SessionState.DRAWING);
+        gameSession.setState(SessionState.CHOOSING_WORD);
         UserDto drawer = getNextDrawer();
 
         Collections.shuffle(gameSession.getWordList());
@@ -108,6 +108,25 @@ public class ChatService {
          messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
          */
 
+    }
+
+    public void handleWordSelection(String userName, String selectedWord) {
+        if (gameSession.getCurrentDrawer() == null || !gameSession.getCurrentDrawer().userName().equals(userName)) {
+            return;
+        }
+        if (selectedWord == null || selectedWord.isEmpty()) {
+            selectedWord = gameSession.getWordList().get(0);
+        }
+
+        gameSession.setCurrentWord(selectedWord);
+        gameSession.setState(SessionState.DRAWING);
+
+        Map<String, Object> content = new HashMap<>();
+        content.put("userName", userName);
+        broadcastGameUpdate("WORD_SELECTED", content);
+        messagingTemplate.convertAndSendToUser(userName, "/queue/game-state", selectedWord);
+
+        System.out.println("Ritare " + userName + " valde ordet: " + selectedWord);
     }
 
     private UserDto getNextDrawer() {
