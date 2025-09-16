@@ -81,9 +81,12 @@ public class UserControllerTest {
                                                 .content(objectMapper.writeValueAsString(loginDto)))
                                 // Assert
                                 .andExpect(MockMvcResultMatchers.status().isOk())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("nisse"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.password").doesNotExist())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
+                                // Kollar att user-objektet returneras korrekt
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.userName").value("nisse"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.password").doesNotExist())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.user.id").exists())
+                                // Kollar om token finns
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.token").exists());
 
         }
 
@@ -91,14 +94,26 @@ public class UserControllerTest {
         @Test
         public void testLoginUser_InvalidCredentials() throws Exception {
                 // Arrange: registrera en user först
+                var user = new User();
+                user.setUserName("stina");
+                user.setPassword("stina123");
 
-                // Act: Logga in med fel userName/ password
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post("/api/users/register")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(user)))
+                                .andExpect(MockMvcResultMatchers.status().isOk());
 
-                // Assert:
+                // Act: Logga in med fel userName/ password; här med fel lösenord
+                var wrongLoginDto = new UserLoginDto(null, "stina", "fel123");
 
-                // Hmmm...kanske får nullPointer exception, samma som igår kväll!!
-                // För att vid fel credential returnerar userService.login null
-                // Kanske bättre att kolla, validateuser == null & returnera 401 Unauthorized
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post("/api/users/login")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(wrongLoginDto)))
+                                // Assert: ska returnera 401 unauthorized
+                                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid credentials"));
 
         }
 
