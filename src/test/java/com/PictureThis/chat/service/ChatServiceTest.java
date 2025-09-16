@@ -3,8 +3,6 @@ package com.PictureThis.chat.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-// import static org.mockito.Mockito.never;
-// import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,48 +22,99 @@ public class ChatServiceTest {
     void setUp() {
         messagingTemplate = mock(SimpMessagingTemplate.class);
 
-        // Skapar en spy, så vi kan verifera privata anrop
+        // Skapar en spy, så vi kan verifera privata anrop t.ex. startRound()
         chatService = Mockito.spy(new ChatService(messagingTemplate));
     }
 
-    // Vid rätt state & rätt gissning: ändrar state till ROUND_END
-    // anropar broadcastGameState och startRound
+    // Vid rätt gissning:
+    // - ändrar state till ROUND_END
+    // - broadcastGameUpdate("CORRECT_GUESS", ...) ska skickas
+    // - startRound() ska anropas
     @Test
     void handleGuess_CorrectGuess_ShouldChangeStateAndBroadcast() {
         // Arrange
         chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
         chatService.getGameSession().setCurrentWord("apple");
 
-        // Lägger till en spelare, annars får null point exception
-        chatService.getGameSession().getPlayers().add(new UserDto("1", "kalle"));
+        // Lägger till två spelare & sätter "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+        var guesser = new UserDto("2", "stina");
 
-        ChatMessage guess = new ChatMessage("kalle", "apple");
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().getPlayers().add(guesser);
+        chatService.getGameSession().setCurrentDrawer(drawer);
 
-        // Mockar bort startRound, annars sätter den tillbaka state till Drawing
+        // Gissaren skriver rätt ord
+        ChatMessage guess = new ChatMessage("stina", "apple");
+
+        // Mockar bort startRound, för att inte ändra tillbaka state till Drawing
         doNothing().when(chatService).startRound();
+
         // Act
         chatService.handleGuess(guess);
 
         // Assert
         assert chatService.getGameSession().getState() == ChatService.SessionState.ROUND_END;
 
+        // Kollar att broadcastGameUpdate körs
         verify(messagingTemplate).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
+        // Kollar att startRound() anropas
         verify(chatService).startRound();
 
     }
 
-    // Vid rätt state & fel gissning: ska inte hända något
+    // Vid fel gissning: ska inte hända något, alltså:
+    // - state ska fortfarande vara DRAWING
+    // - inget meddelande ska skickas
+    // - startRound() ska inte anropas
     @Test
-    void handleGuess_WrongState_ShouldDoNothing() {
+    void handleGuess_WrongGuess_ShouldDoNothing() {
         // Arrange
         chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
         chatService.getGameSession().setCurrentWord("banana");
-        chatService.getGameSession().getPlayers().add(new UserDto("1", "kalle"));
 
-        // Passerar fel ord
-        ChatMessage guess = new ChatMessage("kalle", "apple");
+        // Lägger till två spelare & sätter "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+        var guesser = new UserDto("2", "stina");
+
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().getPlayers().add(guesser);
+        chatService.getGameSession().setCurrentDrawer(drawer);
+
+        // Passerar fel ord som gissning
+        ChatMessage guess = new ChatMessage("stina", "apple");
 
         // Mockar bort startRound
+        doNothing().when(chatService).startRound();
+
+        // Act
+        chatService.handleGuess(guess);
+
+        // Assert
+        assert chatService.getGameSession().getState() == ChatService.SessionState.DRAWING;
+
+        verify(messagingTemplate, never()).convertAndSend(eq("/topic/game-updates"), any(GameUpdateDto.class));
+        verify(chatService, never()).startRound();
+
+    }
+
+    // Testar även om ritaren själv (ritaren skall inte gissa) försöker gissa:
+    // - ska ignoreras, inget broadcast & state ska inte ändras
+    @Test
+    void handleGuess_DrawerGuessing_ShouldBeIgnored() {
+        // Arrange
+        chatService.getGameSession().setState(ChatService.SessionState.DRAWING);
+        chatService.getGameSession().setCurrentWord("apple");
+
+        // Lägger "kalle" som ritare
+        var drawer = new UserDto("1", "kalle");
+
+        chatService.getGameSession().getPlayers().add(drawer);
+        chatService.getGameSession().setCurrentDrawer(drawer);
+
+        // "kalle" själv gissar sitt eget ord
+        ChatMessage guess = new ChatMessage("kalle", "apple");
+
         doNothing().when(chatService).startRound();
 
         // Act
