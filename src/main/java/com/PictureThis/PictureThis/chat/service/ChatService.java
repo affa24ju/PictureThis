@@ -2,7 +2,10 @@ package com.PictureThis.PictureThis.chat.service;
 
 import java.util.Random;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,7 @@ public class ChatService {
 
     public enum SessionState {
         WAITING_FOR_PLAYERS,
-        // CHOOSING_WORD,
+        CHOOSING_WORD,
         DRAWING,
         ROUND_END
     }
@@ -85,14 +88,25 @@ public class ChatService {
     public void startRound() {
         gameSession.setState(SessionState.DRAWING);
         UserDto drawer = getNextDrawer();
-        String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
-        gameSession.setCurrentWord(word);
-        System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
 
+        Collections.shuffle(gameSession.getWordList());
+        List<String> wordSelection = new ArrayList<>(gameSession.getWordList().subList(0, 3));
+        System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord att välja mellan: " + wordSelection);
         Map<String, Object> content = new HashMap<>();
         content.put("userName", drawer.userName());
         broadcastGameUpdate("NEW_ROUND", content);
-        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
+        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/word-selection", wordSelection);
+
+        /* 
+         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
+         gameSession.setCurrentWord(word);
+         System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
+         
+         Map<String, Object> content = new HashMap<>();
+         content.put("userName", drawer.userName());
+         broadcastGameUpdate("NEW_ROUND", content);
+         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
+         */
 
     }
 
@@ -131,12 +145,15 @@ public class ChatService {
         }
     }
 
+    
+
     private void broadcastGameUpdate(String event, Map<String, Object> content) {
         GameUpdateDto update = new GameUpdateDto(event, content);
         messagingTemplate.convertAndSend("/topic/game-updates", update);
         // messagingTemplate.convertAndSend("/topic/game-session", toGameSessionDto());
-
     }
+
+
 
     // TODO när ny spelare går med, skicka hela gameSession
     // private GameSessionDto toGameSessionDto() {
