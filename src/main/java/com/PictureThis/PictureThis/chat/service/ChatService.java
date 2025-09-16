@@ -1,6 +1,5 @@
 package com.PictureThis.PictureThis.chat.service;
 
-import java.util.Random;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,7 +94,7 @@ public class ChatService {
         Map<String, Object> content = new HashMap<>();
         content.put("userName", drawer.userName());
         broadcastGameUpdate("NEW_ROUND", content);
-        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/word-selection", wordSelection);
+        messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", wordSelection);
 
         /* 
          String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
@@ -124,7 +123,7 @@ public class ChatService {
         Map<String, Object> content = new HashMap<>();
         content.put("userName", userName);
         broadcastGameUpdate("WORD_SELECTED", content);
-        messagingTemplate.convertAndSendToUser(userName, "/queue/game-state", selectedWord);
+        //messagingTemplate.convertAndSendToUser(userName, "/queue/game-state", selectedWord);
 
         System.out.println("Ritare " + userName + " valde ordet: " + selectedWord);
     }
