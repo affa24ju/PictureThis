@@ -19,7 +19,7 @@ public class ChatSession {
     private SessionState state = SessionState.WAITING_FOR_PLAYERS;
 
     public ChatSession() {
-        this.wordList = List.of("äpple", "banan", "bil", "hus", "träd", "hund", "katt", "sol", "måne", "stjärna");
+        this.wordList = new ArrayList<>(List.of("äpple", "banan", "bil", "hus", "träd", "hund", "katt", "sol", "måne", "stjärna"));
     }
 
 }

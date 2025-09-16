@@ -21,7 +21,6 @@ public class ChatService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatSession gameSession;
-    private final Random random = new Random();
 
     public enum SessionState {
         WAITING_FOR_PLAYERS,
@@ -38,6 +37,7 @@ public class ChatService {
     public ChatSession getGameSession() {
         return gameSession;
     }
+
 
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
