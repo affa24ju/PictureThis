@@ -25,6 +25,7 @@ public class UserControllerTest {
 
         @Test
         public void testRegisterUser_ValidUser() throws Exception {
+                // Skapar en variabel för att få unikt userName
                 String uniqueUserName = "kalle_" + System.currentTimeMillis();
                 var user = new User();
                 user.setUserName(uniqueUserName);
