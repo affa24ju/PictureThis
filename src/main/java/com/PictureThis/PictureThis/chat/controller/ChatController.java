@@ -1,5 +1,7 @@
 package com.PictureThis.PictureThis.chat.controller;
 
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Controller;
 
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.service.ChatService;
+
 
 @Controller
 public class ChatController {
@@ -20,4 +23,11 @@ public class ChatController {
         chatService.handleGuess(message);
         return message;
     }
+
+    // WebSocket endpoint som kallar på handleWordSelection i chatservice
+    @MessageMapping("/select-word")
+    public void selectWord(String wordSelection, Principal principal) {
+        chatService.handleWordSelection(principal.getName(), wordSelection);
+    }
+    
 }
