@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+//här är allt vi vill att usern ska ha
 @Document(collection = "users")
 @Data
 @NoArgsConstructor

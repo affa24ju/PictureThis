@@ -30,29 +30,29 @@ public class UserController {
     @Autowired
     private JWTUtil JWTUtil;
 
+    // Endpoint för att registrera ny user
     @PostMapping("/register")
     public User registerUser(@Valid @RequestBody User user) {
         return userService.addNewUser(user);
     }
 
+    // Endpoint för att logga in user och generera en JWT token
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestBody UserLoginDto userLoginDto) {
         String userName = userLoginDto.userName();
         String password = userLoginDto.password();
-        UserLoginDto validatedUser = userService.login(userName, password);
-
-        if (validatedUser != null) {
+        try {
+            UserLoginDto validatedUser = userService.login(userName, password);
             String token = JWTUtil.generateToken(userName);
             return ResponseEntity.ok(Map.of(
                     "user", validatedUser,
                     "token", token));
-
-        } else {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
-
     }
 
+    // Endpoint för att hämta alla users
     @GetMapping()
     public List<UserDto> findAllUsers() {
         return userService.findAllUsers();
