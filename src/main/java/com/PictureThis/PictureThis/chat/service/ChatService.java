@@ -36,6 +36,7 @@ public class ChatService {
         return gameSession;
     }
 
+    /* Användare går med i spelet */
     public void playerJoined(UserDto player) {
         if (gameSession.getPlayers().stream().noneMatch(p -> p.userName().equals(player.userName()))) {
             gameSession.getPlayers().add(player);
@@ -52,6 +53,7 @@ public class ChatService {
         }
     }
 
+    /* Användare lämnar */
     public void playerLeft(UserDto player) {
         gameSession.getPlayers().removeIf(p -> p.userName().equals(player.userName()));
 
@@ -82,6 +84,7 @@ public class ChatService {
         }
     }
 
+    /* Logik för att starta rundan - Sätt ny spelare till ritare och ge den val på ord att rita */
     public void startRound() {
         gameSession.setState(SessionState.CHOOSING_WORD);
         UserDto drawer = getNextDrawer();
@@ -97,6 +100,7 @@ public class ChatService {
 
     }
 
+    /* Spelarens val av ord blir 'selectedWord' och den börjar rita */
     public void handleWordSelection(String userName, String selectedWord) {
         if (gameSession.getCurrentDrawer() == null || !gameSession.getCurrentDrawer().userName().equals(userName)) {
             return;
@@ -115,6 +119,7 @@ public class ChatService {
         System.out.println("Ritare " + userName + " valde ordet: " + selectedWord);
     }
 
+    /* Funktion för att välja nästa person att rita */
     private UserDto getNextDrawer() {
         if (gameSession.getPlayers().isEmpty()) {
             return null;
@@ -125,6 +130,7 @@ public class ChatService {
         return drawer;
     }
 
+    /* Tar emot varje chattmeddelande från chatController och kollar om det är rätt gissning (endast om state är DRAWING) */
     public void handleGuess(ChatMessage message) {
         if (gameSession.getState() != SessionState.DRAWING) {
             return;
@@ -150,6 +156,7 @@ public class ChatService {
         }
     }
 
+    /* Skickar events till frontend */
     private void broadcastGameUpdate(String event, Map<String, Object> content) {
         GameUpdateDto update = new GameUpdateDto(event, content);
         messagingTemplate.convertAndSend("/topic/game-updates", update);
