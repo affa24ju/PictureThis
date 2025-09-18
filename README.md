@@ -16,7 +16,7 @@ This backend provides:
 - Real-time communikation via WebSocket (drawing & chat)
 - REST API for user and game data management
 
-The project also has a stanalone frontend built with React (Link below).
+The project also has a standalone frontend built with React (Link below).
 
 ## Tools
 
@@ -54,7 +54,7 @@ docker compose up --build
 
 ## API Endpoints
 
-# Registration
+**Registration**
 
 Register a new user by using Postman (or any other software like this):
 POST: http://localhost:8080/api/users/register
@@ -64,7 +64,7 @@ Ex JSON object:
 See all users:
 GET: http://localhost:8080/api/users
 
-# Login
+**Login**
 
 Only authorized user can login with his/ her own user name and password. Thats why everyone must need to create an account first.
 POST: http://localhost:8080/api/users/login

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.PictureThis.PictureThis.chat.model.ChatMessage;
 import com.PictureThis.PictureThis.chat.model.ChatSession;
 import com.PictureThis.PictureThis.user.dto.UserDto;
-// import com.PictureThis.PictureThis.chat.dto.GameSessionDto;
 import com.PictureThis.PictureThis.chat.dto.GameUpdateDto;
 
 @Service
@@ -36,7 +35,6 @@ public class ChatService {
     public ChatSession getGameSession() {
         return gameSession;
     }
-
 
     /* Användare går med i spelet */
     public void playerJoined(UserDto player) {
@@ -93,22 +91,12 @@ public class ChatService {
 
         Collections.shuffle(gameSession.getWordList());
         List<String> wordSelection = new ArrayList<>(gameSession.getWordList().subList(0, 3));
-        System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord att välja mellan: " + wordSelection);
+        System.out
+                .println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord att välja mellan: " + wordSelection);
         Map<String, Object> content = new HashMap<>();
         content.put("userName", drawer.userName());
         broadcastGameUpdate("NEW_ROUND", content);
         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", wordSelection);
-
-        /* 
-         String word = gameSession.getWordList().get(random.nextInt(gameSession.getWordList().size()));
-         gameSession.setCurrentWord(word);
-         System.out.println("Ny runda startad. Ritare: " + drawer.userName() + ", Ord: " + word);
-         
-         Map<String, Object> content = new HashMap<>();
-         content.put("userName", drawer.userName());
-         broadcastGameUpdate("NEW_ROUND", content);
-         messagingTemplate.convertAndSendToUser(drawer.userName(), "/queue/game-state", word);
-         */
 
     }
 
@@ -127,7 +115,6 @@ public class ChatService {
         Map<String, Object> content = new HashMap<>();
         content.put("userName", userName);
         broadcastGameUpdate("WORD_SELECTED", content);
-        //messagingTemplate.convertAndSendToUser(userName, "/queue/game-state", selectedWord);
 
         System.out.println("Ritare " + userName + " valde ordet: " + selectedWord);
     }
@@ -169,22 +156,11 @@ public class ChatService {
         }
     }
 
-    
     /* Skickar events till frontend */
     private void broadcastGameUpdate(String event, Map<String, Object> content) {
         GameUpdateDto update = new GameUpdateDto(event, content);
         messagingTemplate.convertAndSend("/topic/game-updates", update);
-        // messagingTemplate.convertAndSend("/topic/game-session", toGameSessionDto());
+
     }
 
-
-
-    // TODO när ny spelare går med, skicka hela gameSession
-    // private GameSessionDto toGameSessionDto() {
-    // return new GameSessionDto(
-    // gameSession.getPlayers(),
-    // gameSession.getCurrentWord(),
-    // gameSession.getCurrentDrawer(),
-    // gameSession.getState());
-    // }
 }
